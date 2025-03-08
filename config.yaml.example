@@ -1,0 +1,63 @@
+# PT Web 自动化工具配置文件示例
+# 将此文件复制为 config.yaml 并根据需要修改
+
+# 数据库配置
+database:
+  db_type: sqlite  # 支持 sqlite, mysql, postgresql
+  db_name: pt_automation.db
+  db_host: ""  # 对于 MySQL/PostgreSQL，设置为主机地址，例如 localhost
+  db_port: ""  # 对于 MySQL/PostgreSQL，设置为端口，例如 3306/5432
+  db_user: ""  # 对于 MySQL/PostgreSQL，设置为用户名
+  db_password: ""  # 对于 MySQL/PostgreSQL，设置为密码
+  pool_size: 5  # 连接池大小
+  max_overflow: 10  # 最大溢出连接数
+  echo: false  # 是否打印 SQL 语句，用于调试
+
+# ZM 站点配置
+zm_site:
+  url: https://example.com  # ZM 站点 URL
+  username: ""  # 登录用户名
+  password: ""  # 登录密码
+  cookie: ""  # 可选，如果提供 cookie 则优先使用
+  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+  login_retry: 3  # 登录重试次数
+  timeout: 30  # 请求超时时间（秒）
+  proxy: ""  # 代理地址，例如 http://127.0.0.1:7890
+  auto_login: true  # 是否在 cookie 失效时自动登录
+
+# 下载器配置
+downloader:
+  type: qbittorrent  # 支持 qbittorrent, transmission, aria2 等
+  host: 127.0.0.1  # 下载器地址
+  port: 8080  # 下载器端口
+  username: admin  # 下载器用户名
+  password: adminadmin  # 下载器密码
+  download_dir: downloads  # 下载目录
+  https: false  # 是否使用 HTTPS
+  timeout: 30  # 请求超时时间（秒）
+  auto_start: true  # 是否自动开始下载
+  category: pt-auto  # 下载分类
+
+# 制种配置
+make_torrent:
+  tracker: https://example.com/announce  # Tracker 地址
+  private: true  # 是否为私有种子
+  source: ""  # 种子来源
+  piece_size: 0  # 分块大小（MB），0 表示自动选择最优大小
+  comment: ""  # 种子注释
+  include_md5: false  # 是否包含 MD5 校验
+  tool: mktorrent  # 制种工具，支持 mktorrent, transmission-create 等
+
+# 做种配置
+seeding:
+  min_ratio: 1.0  # 最小分享率
+  min_time: 259200  # 最小做种时间（秒），默认 3 天
+  max_torrents: 0  # 最大做种数量，0 表示无限制
+  max_disk_usage: 0  # 最大磁盘使用量（GB），0 表示无限制
+  auto_delete: false  # 达到条件后是否自动删除
+  reserved_space: 10  # 保留磁盘空间（GB）
+  priority:  # 做种优先级配置
+    default: 0  # 默认优先级
+    free: 1  # 免费种子优先级
+    half_free: 0  # 半免费种子优先级
+    double_up: 2  # 双倍上传种子优先级
