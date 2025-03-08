@@ -2,6 +2,7 @@ import asyncio
 from typing import List
 import logging
 from watchfiles import awatch
+import os
 
 from app.core.event import Event, event_manager
 
@@ -22,12 +23,13 @@ class WatchService:
     def __init__(self, path: str, change_types: List[str]):
         self.stop_event = asyncio.Event()
         self.path = path
+        self.change_types = change_types
 
     async def start(self):
         async for changes in awatch(self.path, stop_event=self.stop_event):
             for change_type, path in changes:
                 logger.info(f'{change_type.name}: {path}')
-                if change_type.name in self.change_types:
+                if change_type.name in self.change_types and os.path.isfile(path):
                     event_manager.add_event(FileChangeEvent(change_type.name, path))
 
     async def stop(self):
