@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, field_validator
+from dataclasses import dataclass
 import uuid
 
 from sqlalchemy import Column, String, Integer, DateTime, JSON, Enum as SQLAlchemyEnum
@@ -38,6 +39,7 @@ class MediaMetadata(BaseModel):
     """剧集元数据 - 作为JSON存储，不需要ID和时间字段"""
     title: str
     original_title: Optional[str] = None
+    year: Optional[int] = None
     douban_id: Optional[str] = None
     imdb_id: Optional[str] = None
     media_type: MediaType
@@ -56,6 +58,7 @@ class MediaMetadata(BaseModel):
             "example": {
                 "title": "三体",
                 "original_title": "The Three-Body Problem",
+                "year": 2021,
                 "douban_id": "26647087",
                 "imdb_id": "tt13016388",
                 "media_type": "tv_show",
@@ -95,8 +98,11 @@ class SubscriptionDB(Base):
     
     # 7. Pt站分集种子id列表字典，key是集数，value是种子id
     torrent_ids = Column(JSON, default=dict)
+
+    # 8. 下载目录名
+    folder_name = Column(String(100), nullable=True)
     
-    # 8. 订阅状态：更新/完结/已打包
+    # 9. 订阅状态：更新/完结/已打包
     status = Column(SQLAlchemyEnum(SubscriptionStatus), default=SubscriptionStatus.UPDATING)
     
     created_at = Column(DateTime, default=datetime.now)
@@ -111,7 +117,8 @@ class SubscriptionMetadata(BaseModel):
     platform: str
     resolution: Resolution
     cron_expression: str
-    torrent_ids: Dict[str, str] = Field(default_factory=dict)
+    torrent_ids: Dict[int, str] = Field(default_factory=dict)
+    folder_name: Optional[str]
     status: SubscriptionStatus = SubscriptionStatus.UPDATING
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
@@ -123,6 +130,7 @@ class SubscriptionMetadata(BaseModel):
                 "media_metadata": {
                     "title": "三体",
                     "original_title": "The Three-Body Problem",
+                    "year": 2021,
                     "douban_id": "26647087",
                     "imdb_id": "tt13016388",
                     "media_type": "tv_show",
@@ -139,7 +147,8 @@ class SubscriptionMetadata(BaseModel):
                 "platform": "netflix",
                 "resolution": "1080p",
                 "cron_expression": "0 0 * * *",
-                "torrent_ids": {"1": "t123", "2": "t124"},
+                "torrent_ids": {1: "t123", 2: "t124"},
+                "folder_name": "Three.Body.Problem.2021.S01",
                 "status": "updating"
             }
         }
@@ -148,3 +157,17 @@ class SubscriptionMetadata(BaseModel):
     @classmethod
     def set_updated_at(cls, v):
         return datetime.now()
+
+class FileType(str, Enum):
+    """文件类型"""
+    M3U8 = "m3u8"
+    MP4 = "mp4"
+    MKV = "mkv"
+    ASS = "ass"
+
+@dataclass
+class DownloadLink:
+    """下载链接"""
+    url: str
+    type: FileType
+    custom_headers: dict
